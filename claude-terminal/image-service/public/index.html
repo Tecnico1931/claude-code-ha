@@ -158,22 +158,27 @@
         let ttydPort = 7681;
         let uploadDir = '/data/images';
 
-        // Fetch configuration
+        // Fetch configuration and load ttyd
         fetch('/config')
             .then(res => res.json())
             .then(config => {
                 ttydPort = config.ttydPort;
                 uploadDir = config.uploadDir;
-                // Load ttyd in iframe
-                const iframe = document.getElementById('terminal-frame');
-                iframe.src = `http://${window.location.hostname}:${ttydPort}`;
+                console.log('Config loaded:', config);
+                // Load ttyd via proxy endpoint
+                loadTerminal();
             })
             .catch(err => {
                 console.error('Failed to load config:', err);
-                // Fallback to default ttyd URL
-                const iframe = document.getElementById('terminal-frame');
-                iframe.src = `http://${window.location.hostname}:7681`;
+                // Fallback: load terminal anyway
+                loadTerminal();
             });
+
+        function loadTerminal() {
+            const iframe = document.getElementById('terminal-frame');
+            // Use proxy endpoint instead of direct port access
+            iframe.src = '/terminal/';
+        }
 
         const status = document.getElementById('status');
         const uploadBtn = document.getElementById('upload-btn');
@@ -206,18 +211,32 @@
                     body: formData
                 });
 
+                // Check if response is ok (status 200-299)
+                if (!response.ok) {
+                    const text = await response.text();
+                    let errorMessage = 'Upload failed';
+                    try {
+                        const errorJson = JSON.parse(text);
+                        errorMessage = errorJson.error || errorMessage;
+                    } catch {
+                        errorMessage = text || errorMessage;
+                    }
+                    throw new Error(errorMessage);
+                }
+
                 const result = await response.json();
 
                 if (result.success) {
                     setStatus(`Uploaded: ${result.filename}`, 'success');
                     console.log('Image uploaded:', result.path);
 
-                    // Try to send path to terminal (best effort)
-                    // Note: This won't work directly due to iframe cross-origin restrictions
-                    // Users will need to manually use the path shown in status
-                    navigator.clipboard.writeText(result.path).catch(() => {
-                        console.log('Could not copy to clipboard');
-                    });
+                    // Try to copy path to clipboard
+                    try {
+                        await navigator.clipboard.writeText(result.path);
+                        console.log('Path copied to clipboard');
+                    } catch (err) {
+                        console.log('Could not copy to clipboard:', err);
+                    }
                 } else {
                     setStatus(result.error || 'Upload failed', 'error');
                 }
@@ -244,19 +263,36 @@
 
         // Paste handling
         document.addEventListener('paste', async (e) => {
+            console.log('Paste event detected');
             const items = e.clipboardData?.items;
-            if (!items) return;
+
+            if (!items) {
+                console.log('No clipboard items found');
+                return;
+            }
+
+            console.log('Clipboard items:', Array.from(items).map(i => i.type));
 
             for (let item of items) {
                 if (item.type.startsWith('image/')) {
+                    console.log('Image found in clipboard:', item.type);
                     e.preventDefault();
                     const file = item.getAsFile();
                     if (file) {
+                        console.log('File extracted from clipboard:', file.name, file.size);
                         await uploadImage(file);
+                    } else {
+                        console.error('Failed to extract file from clipboard item');
                     }
                     break;
                 }
             }
+        });
+
+        // Also handle paste on window for better compatibility
+        window.addEventListener('paste', async (e) => {
+            // This ensures paste works even when iframe has focus
+            console.log('Window paste event detected');
         });
 
         // Drag and drop handling

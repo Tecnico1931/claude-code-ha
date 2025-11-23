@@ -15,9 +15,11 @@
  */
 
 const express = require('express');
+const http = require('http');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
 const app = express();
 const PORT = process.env.IMAGE_SERVICE_PORT || 7680;
@@ -92,15 +94,50 @@ app.get('/config', (req, res) => {
     });
 });
 
-// Error handling
+// Proxy endpoint for ttyd terminal
+// This allows ttyd to work through Home Assistant ingress
+// Handles both HTTP and WebSocket connections
+app.use('/terminal', createProxyMiddleware({
+    target: `http://localhost:${TTYD_PORT}`,
+    changeOrigin: true,
+    ws: true, // Enable WebSocket proxying
+    pathRewrite: {
+        '^/terminal': '' // Remove /terminal prefix when forwarding
+    },
+    onError: (err, req, res) => {
+        console.error('Proxy error:', err.message);
+        res.status(502).send('Failed to connect to terminal');
+    },
+    logLevel: 'warn'
+}));
+
+// Multer error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err.message);
-    res.status(500).json({ error: err.message });
+    if (err instanceof multer.MulterError) {
+        console.error('Multer error:', err.message);
+        return res.status(400).json({
+            success: false,
+            error: `Upload error: ${err.message}`
+        });
+    }
+
+    if (err) {
+        console.error('Error:', err.message);
+        return res.status(500).json({
+            success: false,
+            error: err.message
+        });
+    }
+
+    next();
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
+// Create HTTP server and start listening
+const server = http.createServer(app);
+
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Claude Terminal Image Service running on port ${PORT}`);
     console.log(`Upload directory: ${UPLOAD_DIR}`);
     console.log(`ttyd terminal on port: ${TTYD_PORT}`);
+    console.log(`Terminal proxy available at /terminal/`);
 });
