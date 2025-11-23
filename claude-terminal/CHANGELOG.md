@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.6.5
+
+### ✨ UX Improvement - Better Path Visibility for Manual Copy
+- **Enhanced upload status display**: Full file path now shown prominently with click-to-copy functionality
+  - **Previous**: Only showed filename ("Uploaded: pasted-123.png")
+  - **Now**: Shows full path with icon ("📋 /data/images/pasted-123.png (click to copy)")
+  - **Persistent display**: Path remains visible until next upload (no auto-hide)
+  - **Click-to-copy**: Click the status text to copy path to clipboard
+  - **Visual feedback**: Shows "✓ Copied to clipboard!" confirmation
+  - **Fallback**: If clipboard API fails, shows error and allows manual selection
+  - **User-friendly**: Hover effect and cursor pointer indicate clickability
+
+This improvement addresses the issue where users couldn't easily see or copy the full file path to manually paste into Claude Code CLI.
+
 ## 1.6.4
 
 ### 🐛 Critical Fix - Home Assistant Ingress Compatibility
