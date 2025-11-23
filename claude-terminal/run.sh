@@ -62,6 +62,32 @@ init_environment() {
         bashio::log.info "  - Python venv: active"
     fi
 
+    # Create profile script for persistent environment variables
+    # This ensures ALL bash sessions (including ttyd shells) have correct PATH
+    cat > /etc/profile.d/persistent-packages.sh << 'PROFILE_EOF'
+# Persistent package environment - auto-loaded for all bash sessions
+export HOME="/data/home"
+export XDG_CONFIG_HOME="/data/.config"
+export XDG_CACHE_HOME="/data/.cache"
+export XDG_STATE_HOME="/data/.local/state"
+export XDG_DATA_HOME="/data/.local/share"
+export ANTHROPIC_CONFIG_DIR="/data/.config/claude"
+export ANTHROPIC_HOME="/data"
+
+# Persistent package paths (HIGHEST PRIORITY)
+export PATH="/data/packages/bin:/data/packages/python/venv/bin:$PATH"
+export LD_LIBRARY_PATH="/data/packages/lib:${LD_LIBRARY_PATH:-}"
+export PKG_CONFIG_PATH="/data/packages/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+
+# Python virtual environment if it exists
+if [ -d "/data/packages/python/venv" ]; then
+    export VIRTUAL_ENV="/data/packages/python/venv"
+fi
+PROFILE_EOF
+
+    chmod 644 /etc/profile.d/persistent-packages.sh
+    bashio::log.info "  - Profile script created: /etc/profile.d/persistent-packages.sh"
+
     # Migrate any existing authentication files from legacy locations
     migrate_legacy_auth_files "$claude_config_dir"
 

@@ -320,7 +320,22 @@ ls -la /data/packages/bin/
 
 # Verify PATH includes persistent directory
 echo $PATH | grep /data/packages
+
+# If PATH is wrong, check if profile script exists
+cat /etc/profile.d/persistent-packages.sh
+
+# Source the profile manually if needed (temporary fix)
+source /etc/profile.d/persistent-packages.sh
+
+# If the profile script is missing, you're running an old version
+# Update to v1.5.2+ which includes the PATH fix
 ```
+
+**CRITICAL FIX (v1.5.2)**: Previous versions had a bug where persistent packages
+were installed correctly but not in the PATH for ttyd bash sessions. This was
+fixed by creating `/etc/profile.d/persistent-packages.sh` which is automatically
+sourced by all bash sessions. If you installed packages before v1.5.2 and they
+don't work, update to the latest version and restart the add-on.
 
 **Python import errors**:
 ```bash
