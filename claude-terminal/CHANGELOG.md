@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.6.4
+
+### 🐛 Critical Fix - Home Assistant Ingress Compatibility
+- **Fixed 404 errors and config loading failures**: Changed all paths to relative for ingress compatibility
+  - **Root cause**: Absolute paths (`/config`, `/terminal/`, `/upload`) don't work with Home Assistant ingress
+  - **Impact**: All API endpoints returned 404, terminal wouldn't load, uploads failed
+  - **Solution**: Changed to relative paths (`config`, `terminal/`, `upload`)
+  - **Why**: Home Assistant ingress adds path prefix `/api/hassio_ingress/TOKEN/` to all requests
+  - **Result**: All features now work correctly through Home Assistant ingress
+
+**Technical note**: This is a common Home Assistant add-on issue. When using ingress, all fetch calls and iframe sources must use relative paths (without leading `/`) to work correctly with the ingress path prefix.
+
 ## 1.6.3
 
 ### 🐛 Bug Fix - Image Service Startup Logging
