@@ -383,9 +383,11 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    const filePath = result.path;
+
                     // Display full path persistently with click-to-copy functionality
-                    setStatus(`📋 ${result.path} (click to select)`, 'success', true);
-                    console.log('Image uploaded:', result.path);
+                    setStatus(`📋 ${filePath} (click to select)`, 'success', true);
+                    console.log('Image uploaded:', filePath);
 
                     // Make status clickable to select text (works in iframes)
                     status.style.cursor = 'pointer';
@@ -394,7 +396,7 @@
                     status.onclick = () => {
                         // Try modern clipboard API first
                         if (navigator.clipboard && navigator.clipboard.writeText) {
-                            navigator.clipboard.writeText(result.path)
+                            navigator.clipboard.writeText(filePath)
                                 .then(() => {
                                     const originalText = status.textContent;
                                     setStatus('✓ Copied!', 'success', false);
@@ -410,6 +412,9 @@
                             selectText();
                         }
                     };
+
+                    // Auto-copy to clipboard and try to paste into terminal
+                    autoCopyAndPaste(filePath);
 
                     // Helper to select text (works in all contexts)
                     function selectText() {
@@ -545,6 +550,124 @@
                 }
             }
         });
+
+        // Auto-copy path and attempt to paste into terminal
+        async function autoCopyAndPaste(filePath) {
+            const iframe = document.getElementById('terminal-frame');
+
+            // Step 1: Copy to clipboard
+            const copied = await copyToClipboard(filePath);
+
+            if (copied) {
+                // Step 2: Focus the terminal iframe
+                try {
+                    iframe.contentWindow.focus();
+                    iframe.focus();
+
+                    // Step 3: Try to send the text directly
+                    // Note: This might not work due to iframe security, but we'll try
+                    setTimeout(() => {
+                        // Try to trigger a paste event in the iframe
+                        const pasteEvent = new ClipboardEvent('paste', {
+                            clipboardData: new DataTransfer(),
+                            bubbles: true,
+                            cancelable: true
+                        });
+
+                        // Try to add the text to the clipboard data
+                        try {
+                            pasteEvent.clipboardData.setData('text/plain', filePath);
+                        } catch (e) {
+                            console.log('Cannot set clipboard data in event:', e);
+                        }
+
+                        iframe.contentWindow.document.dispatchEvent(pasteEvent);
+
+                        // Alternative: Try to send keyboard events
+                        sendTextToTerminal(filePath);
+
+                        setStatus(`📋 ${filePath} - Ready to use! (path in clipboard)`, 'success', true);
+                    }, 100);
+
+                } catch (err) {
+                    console.log('Cannot access iframe for auto-paste:', err);
+                    setStatus(`📋 ${filePath} - Copied! Paste into terminal (Cmd+V)`, 'success', true);
+                }
+            }
+        }
+
+        // Helper to copy text to clipboard
+        async function copyToClipboard(text) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                } catch (err) {
+                    console.log('Clipboard API failed, trying fallback:', err);
+                    return fallbackCopyToClipboard(text);
+                }
+            } else {
+                return fallbackCopyToClipboard(text);
+            }
+        }
+
+        // Fallback clipboard copy using execCommand
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'absolute';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+
+            try {
+                const copied = document.execCommand('copy');
+                document.body.removeChild(textArea);
+                return copied;
+            } catch (err) {
+                document.body.removeChild(textArea);
+                return false;
+            }
+        }
+
+        // Try to send text to terminal by simulating keyboard input
+        function sendTextToTerminal(text) {
+            const iframe = document.getElementById('terminal-frame');
+
+            // Try to send each character as a keyboard event
+            // This might not work due to iframe restrictions, but worth trying
+            try {
+                const iframeDoc = iframe.contentWindow.document;
+                const terminal = iframeDoc.querySelector('.xterm-helper-textarea') ||
+                               iframeDoc.querySelector('textarea') ||
+                               iframeDoc.body;
+
+                if (terminal) {
+                    // Try to insert text
+                    if (terminal.value !== undefined) {
+                        terminal.value = text;
+                        terminal.dispatchEvent(new Event('input', { bubbles: true }));
+                    }
+
+                    // Try to send keyboard events for each character
+                    for (const char of text) {
+                        const keyEvent = new KeyboardEvent('keypress', {
+                            key: char,
+                            char: char,
+                            keyCode: char.charCodeAt(0),
+                            bubbles: true
+                        });
+                        terminal.dispatchEvent(keyEvent);
+                    }
+
+                    console.log('Attempted to send text to terminal');
+                }
+            } catch (err) {
+                console.log('Cannot send keyboard events to iframe:', err);
+                // This is expected due to cross-origin restrictions
+                // The clipboard copy is the fallback
+            }
+        }
 
         // Prevent default drag behavior on iframe
         window.addEventListener('load', () => {

@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.7.1
+
+### ✨ Improvement - Auto-Copy & Focus for Image Uploads
+- **Streamlined image workflow**: Path automatically copied and terminal focused after upload
+  - **Auto-copy to clipboard**: File path instantly copied when image uploaded
+  - **Auto-focus terminal**: Terminal iframe automatically focused and ready
+  - **Auto-paste attempt**: Tries to paste path directly (may be blocked by browser security)
+  - **Clear status**: Shows "Ready to use! (path in clipboard)"
+  - **Workflow**: Upload image → Press Cmd+V → Done!
+  - **Fallback**: If auto-paste blocked, just press Cmd+V (clipboard already has path)
+
+**How it works now**:
+1. Paste/drag/upload an image
+2. Path is automatically copied to clipboard
+3. Terminal is automatically focused
+4. Just press Cmd+V to paste the path
+5. Ask Claude to analyze it!
+
+This makes the image workflow nearly seamless - you don't need to click anything after uploading!
+
 ## 1.7.0
 
 ### ✨ New Feature - Voice Input with Web Speech API
