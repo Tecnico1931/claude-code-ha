@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.7.0
+
+### ✨ New Feature - Voice Input with Web Speech API
+- **Talk to Claude instead of typing**: Built-in speech-to-text using Chrome's Web Speech API
+  - **Press-to-talk button**: Click 🎤 Voice Input button in header
+  - **Real-time transcription**: See your speech converted to text as you speak
+  - **Continuous recording**: Keeps listening until you stop
+  - **Editable transcript**: Edit the transcribed text before copying
+  - **Copy to clipboard**: One-click copy to paste into Claude Terminal
+  - **Keyboard shortcuts**:
+    - `Space` - Start/stop recording
+    - `Enter` - Copy transcript
+    - `Escape` - Close modal
+  - **Error handling**: Clear messages for microphone issues, permissions, etc.
+  - **No external services**: Uses browser's built-in speech recognition (Chrome, Edge, Safari)
+  - **Perfect for**: Long questions, complex queries, hands-free operation
+
+- **How to use**:
+  1. Click 🎤 Voice Input button
+  2. Click "Start Recording" and speak
+  3. Click "Stop Recording" when done
+  4. Edit text if needed
+  5. Click "Copy Text"
+  6. Paste into Claude Terminal!
+
+**Browser support**: Chrome, Edge, Safari (requires microphone permissions)
+
 ## 1.6.6
 
 ### 🐛 Bug Fix - Clipboard API in Home Assistant Ingress
