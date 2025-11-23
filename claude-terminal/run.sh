@@ -263,11 +263,47 @@ get_claude_launch_command() {
 }
 
 
+# Start image upload service
+start_image_service() {
+    local image_port=7680
+    local ttyd_port=7681
+    local upload_dir="/data/images"
+
+    bashio::log.info "Starting image upload service on port ${image_port}..."
+
+    # Create upload directory if it doesn't exist
+    mkdir -p "${upload_dir}"
+    chmod 755 "${upload_dir}"
+
+    # Export environment variables for the image service
+    export IMAGE_SERVICE_PORT="${image_port}"
+    export TTYD_PORT="${ttyd_port}"
+    export UPLOAD_DIR="${upload_dir}"
+
+    # Start the Node.js image service in the background
+    cd /opt/image-service
+    node server.js >> /var/log/image-service.log 2>&1 &
+
+    # Store the PID for potential cleanup
+    local image_service_pid=$!
+    bashio::log.info "Image service started (PID: ${image_service_pid})"
+
+    # Give it a moment to start
+    sleep 2
+
+    # Check if it's running
+    if kill -0 "${image_service_pid}" 2>/dev/null; then
+        bashio::log.info "Image service is running successfully"
+    else
+        bashio::log.warning "Image service may have failed to start, check /var/log/image-service.log"
+    fi
+}
+
 # Start main web terminal
 start_web_terminal() {
     local port=7681
     bashio::log.info "Starting web terminal on port ${port}..."
-    
+
     # Log environment information for debugging
     bashio::log.info "Environment variables:"
     bashio::log.info "ANTHROPIC_CONFIG_DIR=${ANTHROPIC_CONFIG_DIR}"
@@ -276,12 +312,15 @@ start_web_terminal() {
     # Get the appropriate launch command based on configuration
     local launch_command
     launch_command=$(get_claude_launch_command)
-    
+
     # Log the configuration being used
     local auto_launch_claude
     auto_launch_claude=$(bashio::config 'auto_launch_claude' 'true')
     bashio::log.info "Auto-launch Claude: ${auto_launch_claude}"
-    
+
+    # Start the image upload service first
+    start_image_service
+
     # Run ttyd with improved configuration
     exec ttyd \
         --port "${port}" \

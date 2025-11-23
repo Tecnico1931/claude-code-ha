@@ -11,6 +11,7 @@ This project is a fork of [heytcass/home-assistant-addons](https://github.com/he
 
 ### What's Enhanced in This Fork
 
+- **Image Paste Support**: Upload images via paste (Ctrl+V), drag-drop, or upload button for Claude analysis
 - **Persistent Package Management**: Install system and Python packages that survive reboots
 - **Auto-install Configuration**: Configure packages to auto-install on startup
 - **Improved Credential Handling**: Enhanced authentication persistence
@@ -46,6 +47,11 @@ A web-based terminal interface with Claude Code CLI pre-installed and enhanced p
   - Learning resources
 
 #### Enhanced Features (Pro)
+- **Image Paste Support**: Paste (Ctrl+V), drag-drop, or upload images for Claude analysis
+  - Lightweight service (~10MB RAM, ARM-compatible)
+  - Supports JPEG, PNG, GIF, WebP, SVG (10MB limit)
+  - Persistent storage in `/data/images/`
+  - Perfect for OCR, image analysis, screenshot debugging
 - **Persistent Package Management**: Install packages that survive container restarts
 - **Auto-install Packages**: Configure APK and pip packages to auto-install on startup
 - **Python Virtual Environment**: Isolated Python environment for packages

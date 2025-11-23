@@ -1,5 +1,37 @@
 # Changelog
 
+## 1.6.0
+
+### ✨ New Feature - Image Paste Support
+- **Paste images directly in the terminal**: Upload images via paste (Ctrl+V), drag-drop, or upload button
+  - **Lightweight Node.js service**: ~10MB RAM overhead, ARM-compatible for Raspberry Pi
+  - **Multiple upload methods**: Clipboard paste, drag-and-drop, or button click
+  - **Persistent storage**: Images saved to `/data/images/` (survives restarts)
+  - **Claude integration**: Use uploaded images with Claude Code CLI for analysis, OCR, etc.
+  - **File formats**: Supports JPEG, PNG, GIF, WebP, SVG (10MB limit)
+
+- **Architecture changes**:
+  - New image upload service on port 7680 (Express + Multer)
+  - Custom HTML interface embeds ttyd terminal (port 7681)
+  - Home Assistant ingress now points to port 7680
+  - Both services run concurrently in the container
+
+- **User experience**:
+  - Copy image → Paste in terminal → Automatic upload
+  - File path shown in status bar: `/data/images/pasted-<timestamp>.png`
+  - Use with Claude: `analyze /data/images/pasted-123.png`
+
+### 📚 Documentation
+- Added `IMAGE_PASTE.md` with complete feature documentation
+- Updated CLAUDE.md with image paste development notes
+- Documented troubleshooting and browser compatibility
+
+### 🔧 Technical Details
+- Dependencies: Express (4.18.2), Multer (1.4.5-lts.1)
+- Security: MIME type validation, 10MB size limit, isolated storage
+- Performance: Minimal CPU usage, only active during uploads
+- Compatibility: All supported architectures (amd64, aarch64, armv7)
+
 ## 1.5.2
 
 ### 🐛 Critical Bug Fix - Persistent Packages PATH

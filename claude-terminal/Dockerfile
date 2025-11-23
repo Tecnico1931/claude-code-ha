@@ -27,6 +27,13 @@ RUN apk add --no-cache \
 RUN mkdir -p /config/claude-config
 WORKDIR /config
 
+# Copy and install image service
+COPY image-service/ /opt/image-service/
+RUN cd /opt/image-service \
+    && npm install --production --no-optional \
+    && npm cache clean --force \
+    && chmod +x server.js
+
 # Copy startup script and modular scripts
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
