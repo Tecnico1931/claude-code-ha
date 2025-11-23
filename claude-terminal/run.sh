@@ -55,6 +55,16 @@ init_environment() {
     # Migrate any existing authentication files from legacy locations
     migrate_legacy_auth_files "$claude_config_dir"
 
+    # Setup Claude Code skills and commands
+    if [ -d "/opt/.claude" ]; then
+        if [ ! -d "$data_home/.claude" ]; then
+            cp -r /opt/.claude "$data_home/.claude"
+            bashio::log.info "  - Claude Code skills & commands installed"
+        else
+            bashio::log.info "  - Claude Code skills & commands: already configured"
+        fi
+    fi
+
     bashio::log.info "Environment initialized:"
     bashio::log.info "  - Home: $HOME"
     bashio::log.info "  - Config: $XDG_CONFIG_HOME"

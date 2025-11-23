@@ -30,6 +30,7 @@ WORKDIR /config
 # Copy startup script and modular scripts
 COPY run.sh /run.sh
 COPY scripts/ /opt/scripts/
+COPY .claude/ /opt/.claude/
 RUN chmod +x /run.sh \
     && chmod +x /opt/scripts/*.sh
 
