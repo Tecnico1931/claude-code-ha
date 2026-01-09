@@ -55,6 +55,26 @@ RUN case "${TARGETARCH}" in \
     chmod +x /usr/bin/ha && \
     echo "Home Assistant CLI ${HA_VERSION} installed successfully"
 
+# Install GitHub CLI (gh command)
+# Download appropriate binary based on build architecture
+RUN case "${TARGETARCH}" in \
+        amd64)   GH_ARCH="amd64" ;; \
+        arm64)   GH_ARCH="arm64" ;; \
+        arm/v7)  GH_ARCH="armv7" ;; \
+        386)     GH_ARCH="386" ;; \
+        *)       echo "Unsupported architecture for gh: ${TARGETARCH}" && exit 1 ;; \
+    esac && \
+    echo "Fetching latest GitHub CLI version..." && \
+    GH_VERSION=$(curl -fsSL https://api.github.com/repos/cli/cli/releases/latest | jq -r '.tag_name' | sed 's/^v//') && \
+    echo "Installing GitHub CLI v${GH_VERSION} for ${GH_ARCH}..." && \
+    curl -fsSL -o /tmp/gh.tar.gz \
+        "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_linux_${GH_ARCH}.tar.gz" && \
+    tar -xzf /tmp/gh.tar.gz -C /tmp && \
+    mv /tmp/gh_${GH_VERSION}_linux_${GH_ARCH}/bin/gh /usr/bin/gh && \
+    chmod +x /usr/bin/gh && \
+    rm -rf /tmp/gh* && \
+    echo "GitHub CLI v${GH_VERSION} installed successfully"
+
 # Create directory for Claude configuration and set working directory
 RUN mkdir -p /config/claude-config
 WORKDIR /config

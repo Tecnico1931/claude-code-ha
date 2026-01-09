@@ -12,6 +12,7 @@ init_environment() {
     local cache_dir="/data/.cache"
     local state_dir="/data/.local/state"
     local claude_config_dir="/data/.config/claude"
+    local gh_config_dir="/data/.config/gh"
     local persist_root="/data/packages"
     local persist_bin="$persist_root/bin"
     local persist_lib="$persist_root/lib"
@@ -20,14 +21,14 @@ init_environment() {
     bashio::log.info "Initializing Claude Code environment in /data..."
 
     # Create all required directories
-    if ! mkdir -p "$data_home" "$config_dir/claude" "$cache_dir" "$state_dir" "/data/.local" \
+    if ! mkdir -p "$data_home" "$config_dir/claude" "$config_dir/gh" "$cache_dir" "$state_dir" "/data/.local" \
                   "$persist_bin" "$persist_lib" "$persist_python"; then
         bashio::log.error "Failed to create directories in /data"
         exit 1
     fi
 
     # Set permissions
-    chmod 755 "$data_home" "$config_dir" "$cache_dir" "$state_dir" "$claude_config_dir" \
+    chmod 755 "$data_home" "$config_dir" "$cache_dir" "$state_dir" "$claude_config_dir" "$gh_config_dir" \
               "$persist_root" "$persist_bin" "$persist_lib" "$persist_python"
 
     # Set XDG and application environment variables
@@ -40,6 +41,9 @@ init_environment() {
     # Claude-specific environment variables
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
     export ANTHROPIC_HOME="/data"
+
+    # GitHub CLI persistent configuration
+    export GH_CONFIG_DIR="$gh_config_dir"
 
     # Get dangerously-skip-permissions configuration
     local dangerously_skip_permissions
@@ -74,6 +78,9 @@ export XDG_DATA_HOME="/data/.local/share"
 export ANTHROPIC_CONFIG_DIR="/data/.config/claude"
 export ANTHROPIC_HOME="/data"
 
+# GitHub CLI persistent configuration
+export GH_CONFIG_DIR="/data/.config/gh"
+
 # Persistent package paths (HIGHEST PRIORITY)
 export PATH="/data/packages/bin:/data/packages/python/venv/bin:$PATH"
 export LD_LIBRARY_PATH="/data/packages/lib:${LD_LIBRARY_PATH:-}"
@@ -105,6 +112,7 @@ PROFILE_EOF
     bashio::log.info "  - Home: $HOME"
     bashio::log.info "  - Config: $XDG_CONFIG_HOME"
     bashio::log.info "  - Claude config: $ANTHROPIC_CONFIG_DIR"
+    bashio::log.info "  - GitHub config: $GH_CONFIG_DIR"
     bashio::log.info "  - Cache: $XDG_CACHE_HOME"
     bashio::log.info "  - Persistent packages: $persist_root"
 }

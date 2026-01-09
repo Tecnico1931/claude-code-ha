@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.0.4
+
+### ✨ New Feature - GitHub CLI Pre-installed
+- **GitHub CLI (gh) included**: GitHub's official CLI tool now pre-installed in Docker image
+  - Create, view, and manage GitHub issues and pull requests
+  - Work with GitHub repositories directly from the terminal
+  - Authenticate with `gh auth login`
+  - Essential for git workflows: `gh pr create`, `gh issue list`, `gh repo clone`
+  - Automatically fetches latest version during build
+
+### 🛠️ Improvement - Persistent GitHub Authentication
+- **GitHub credentials survive reboots**: `GH_CONFIG_DIR` set to `/data/.config/gh`
+  - Login once with `gh auth login`, credentials persist across container restarts
+  - Consistent with Claude credential persistence approach
+  - No need to re-authenticate after Home Assistant updates
+- **Session picker menu option**: New "🐙 GitHub CLI login" option (choice 6)
+  - Guided authentication flow with browser or token options
+  - Shows current auth status before prompting
+  - Instructions for creating GitHub personal access tokens
+
 ## 2.0.3
 
 ### ✨ New Features - Enhanced Developer Toolkit
