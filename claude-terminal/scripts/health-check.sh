@@ -91,18 +91,18 @@ check_network_connectivity() {
     bashio::log.info "=== Network Connectivity Check ==="
 
     # Check DNS resolution first
-    if host registry.npmjs.org >/dev/null 2>&1 || nslookup registry.npmjs.org >/dev/null 2>&1; then
+    if host claude.ai >/dev/null 2>&1 || nslookup claude.ai >/dev/null 2>&1; then
         bashio::log.info "DNS resolution working ✓"
     else
         bashio::log.error "DNS resolution failing - check network configuration"
         bashio::log.info "Try setting custom DNS servers (e.g., 8.8.8.8, 1.1.1.1)"
     fi
 
-    # Try to reach npm registry
-    if curl -s --head --connect-timeout 10 --max-time 15 https://registry.npmjs.org > /dev/null; then
-        bashio::log.info "Can reach npm registry ✓"
+    # Try to reach Claude installer endpoint
+    if curl -s --head --connect-timeout 10 --max-time 15 https://claude.ai/install.sh > /dev/null; then
+        bashio::log.info "Can reach Claude installer ✓"
     else
-        bashio::log.warning "Cannot reach npm registry - this may affect Claude CLI installation"
+        bashio::log.warning "Cannot reach Claude installer - this may affect Claude CLI installation"
         bashio::log.info "This could be due to:"
         bashio::log.info "  - Network proxy/firewall blocking access"
         bashio::log.info "  - DNS resolution issues"
