@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.6
+
+### 🛠️ Improvement - Native Claude Code Installation
+- **Migrated to native installer**: Claude Code now installed using Anthropic's recommended native binary installer
+  - Replaces npm installation (`@anthropic-ai/claude-code`) with `curl -fsSL https://claude.ai/install.sh | bash`
+  - More reliable builds (no npm retry logic needed)
+  - Follows Anthropic's official distribution method
+  - npm installation is deprecated by Anthropic
+- **Updated health checks**: Network connectivity now validates `claude.ai` instead of npm registry
+- **Simplified run.sh**: Removed `node $(which claude)` wrapper, now calls `claude` directly
+
 ## 2.0.5
 
 ### 🐛 Bug Fix - Claude CLI Not Found
