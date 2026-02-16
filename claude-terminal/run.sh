@@ -373,16 +373,14 @@ start_web_terminal() {
     start_image_service
 
     # Run ttyd with keepalive and reconnect configuration
-    # --ping-interval: prevents WebSocket idle disconnects
-    # --client-option reconnect: auto-reconnect on connection loss
+    # --ping-interval 30: WebSocket ping every 30s (default 300s) to prevent idle disconnects
+    # --client-option reconnect=5: xterm.js auto-reconnect after 5 seconds on disconnect
     exec ttyd \
         --port "${port}" \
         --interface 0.0.0.0 \
         --writable \
         --ping-interval 30 \
-        --client-option enableReconnect=true \
-        --client-option reconnect=10 \
-        --client-option reconnectInterval=5 \
+        --client-option reconnect=5 \
         bash -c "$launch_command"
 }
 

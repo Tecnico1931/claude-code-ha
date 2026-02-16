@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.0.9
+
+### 🐛 Bug Fix - First Connection Drop on Terminal Load
+- **Removed invalid ttyd client options**: `enableReconnect` and `reconnectInterval` are hterm options not supported by ttyd 1.7.4 (xterm.js-based), causing the WebSocket client to error and disconnect on first load
+  - Kept only valid options: `--ping-interval 30` and `--client-option reconnect=5`
+  - First connection now establishes cleanly without requiring a retry
+
 ## 2.0.8
 
 ### 🐛 Bug Fix - Image Service Crash on WebSocket Errors (#8)
