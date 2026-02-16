@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.0.8
+
+### 🐛 Bug Fix - Image Service Crash on WebSocket Errors (#8)
+- **Fixed `res.status is not a function` crash**: The proxy `onError` handler in `server.js` now checks whether `res` is an Express response (HTTP) or a raw socket (WebSocket) before calling `.status()`
+  - Previously, WebSocket proxy errors crashed the entire image service process
+  - Now gracefully handles both HTTP and WebSocket error scenarios
+
+### 🐛 Bug Fix - Disable Auto-Update Nag Inside Container (#7)
+- **Suppressed Claude CLI update prompts**: Set `DISABLE_AUTOUPDATER=1` in both runtime environment and profile script
+  - Claude Code binary is baked into the container image; updates are delivered via add-on releases
+  - Eliminates the persistent "update available" banner on every session start
+
+### 🐛 Bug Fix - Session Reconnection After Disconnect (#6)
+- **Fixed "Press return to reconnect" not working**: Removed `exec` from session picker launch functions so Claude exiting returns to the menu instead of terminating the process
+  - When Claude CLI exits (via `/exit`, Escape, or crash), the session picker menu now reappears automatically
+  - Bash shell sessions also return to menu on `exit`
+  - Removed aggressive EXIT trap that was killing the session picker prematurely
+- **Added ttyd keepalive and auto-reconnect**: Configured `--ping-interval 30` and client-side reconnect options to prevent WebSocket idle disconnects and automatically recover from network interruptions
+
 ## 2.0.7
 
 ### 🐛 Bug Fix - Native Install Path Mismatch
