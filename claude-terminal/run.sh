@@ -54,6 +54,10 @@ init_environment() {
     export ANTHROPIC_CONFIG_DIR="$claude_config_dir"
     export ANTHROPIC_HOME="/data"
 
+    # Disable auto-updates: binary is baked into the container image,
+    # updates are delivered via add-on releases, not CLI self-update
+    export DISABLE_AUTOUPDATER=1
+
     # GitHub CLI persistent configuration
     export GH_CONFIG_DIR="$gh_config_dir"
 
@@ -89,6 +93,9 @@ export XDG_STATE_HOME="/data/.local/state"
 export XDG_DATA_HOME="/data/.local/share"
 export ANTHROPIC_CONFIG_DIR="/data/.config/claude"
 export ANTHROPIC_HOME="/data"
+
+# Disable auto-updates inside container (updates via add-on releases)
+export DISABLE_AUTOUPDATER=1
 
 # GitHub CLI persistent configuration
 export GH_CONFIG_DIR="/data/.config/gh"
@@ -252,6 +259,7 @@ auto_install_packages() {
 # Legacy monitoring functions removed - using simplified /data approach
 
 # Determine Claude launch command based on configuration
+# Session picker handles its own loop, so Claude exiting returns to the menu (#6)
 get_claude_launch_command() {
     local auto_launch_claude
     local dangerously_skip_permissions
@@ -268,14 +276,17 @@ get_claude_launch_command() {
     fi
 
     if [ "$auto_launch_claude" = "true" ]; then
-        # Original behavior: auto-launch Claude directly
-        echo "clear && echo 'Welcome to Claude Terminal!' && echo '' && echo 'Starting Claude...' && sleep 1 && claude ${claude_flags}"
+        # Auto-launch Claude first, then fall back to session picker on exit
+        if [ -f /usr/local/bin/claude-session-picker ]; then
+            echo "clear && echo 'Welcome to Claude Terminal!' && echo '' && echo 'Starting Claude...' && sleep 1 && claude ${claude_flags}; /usr/local/bin/claude-session-picker"
+        else
+            echo "clear && echo 'Welcome to Claude Terminal!' && echo '' && echo 'Starting Claude...' && sleep 1 && claude ${claude_flags}"
+        fi
     else
-        # New behavior: show interactive session picker
+        # Show interactive session picker (has its own while-true loop)
         if [ -f /usr/local/bin/claude-session-picker ]; then
             echo "clear && /usr/local/bin/claude-session-picker"
         else
-            # Fallback if session picker is missing
             bashio::log.warning "Session picker not found, falling back to auto-launch"
             echo "clear && echo 'Welcome to Claude Terminal!' && echo '' && echo 'Starting Claude...' && sleep 1 && claude"
         fi
@@ -361,11 +372,17 @@ start_web_terminal() {
     # Start the image upload service first
     start_image_service
 
-    # Run ttyd with improved configuration
+    # Run ttyd with keepalive and reconnect configuration
+    # --ping-interval: prevents WebSocket idle disconnects
+    # --client-option reconnect: auto-reconnect on connection loss
     exec ttyd \
         --port "${port}" \
         --interface 0.0.0.0 \
         --writable \
+        --ping-interval 30 \
+        --client-option enableReconnect=true \
+        --client-option reconnect=10 \
+        --client-option reconnectInterval=5 \
         bash -c "$launch_command"
 }
 

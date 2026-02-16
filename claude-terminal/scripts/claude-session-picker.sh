@@ -58,21 +58,22 @@ launch_claude_new() {
     local flags=$(get_claude_flags)
     echo "🚀 Starting new Claude session..."
     sleep 1
-    exec /usr/local/bin/claude $flags
+    /usr/local/bin/claude $flags
+    # Returns here when Claude exits, loop in main() shows menu again
 }
 
 launch_claude_continue() {
     local flags=$(get_claude_flags)
     echo "⏩ Continuing most recent conversation..."
     sleep 1
-    exec /usr/local/bin/claude -c $flags
+    /usr/local/bin/claude -c $flags
 }
 
 launch_claude_resume() {
     local flags=$(get_claude_flags)
     echo "📋 Opening conversation list for selection..."
     sleep 1
-    exec /usr/local/bin/claude -r $flags
+    /usr/local/bin/claude -r $flags
 }
 
 launch_claude_custom() {
@@ -93,15 +94,14 @@ launch_claude_custom() {
     else
         echo "🚀 Running: claude $custom_args $base_flags"
         sleep 1
-        # Use eval to properly handle quoted arguments
-        eval "exec /usr/local/bin/claude $custom_args $base_flags"
+        eval "/usr/local/bin/claude $custom_args $base_flags"
     fi
 }
 
 launch_auth_helper() {
     echo "🔐 Starting Claude authentication helper..."
     sleep 1
-    exec /opt/scripts/claude-auth-helper.sh
+    /opt/scripts/claude-auth-helper.sh
 }
 
 launch_github_auth() {
@@ -189,9 +189,10 @@ launch_github_auth() {
 
 launch_bash_shell() {
     echo "🐚 Dropping to bash shell..."
-    echo "Tip: Run 'claude' manually when ready"
+    echo "Tip: Run 'claude' manually, type 'exit' to return to this menu"
     sleep 1
-    exec bash
+    bash
+    # Returns here when user types 'exit', loop in main() shows menu again
 }
 
 exit_session_picker() {
@@ -242,9 +243,6 @@ main() {
         esac
     done
 }
-
-# Handle cleanup on exit
-trap 'exit_session_picker' EXIT INT TERM
 
 # Run main function
 main "$@"

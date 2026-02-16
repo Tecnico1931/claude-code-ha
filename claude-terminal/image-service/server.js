@@ -106,7 +106,12 @@ app.use('/terminal', createProxyMiddleware({
     },
     onError: (err, req, res) => {
         console.error('Proxy error:', err.message);
-        res.status(502).send('Failed to connect to terminal');
+        // res may be a raw socket (WebSocket) instead of an Express response
+        if (typeof res.status === 'function') {
+            res.status(502).send('Failed to connect to terminal');
+        } else if (typeof res.end === 'function') {
+            res.end();
+        }
     },
     logLevel: 'warn'
 }));
