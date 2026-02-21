@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.0.10
+
+### 🐛 Bug Fix - CPU Compatibility (AVX Not Required)
+- **Reverted to npm installation for CPU compatibility**: Fixed Docker build failure on CPUs without AVX support
+  - **Root cause**: Native installer (v2.0.6+) uses Bun runtime which requires AVX CPU instructions
+  - **Affected hardware**: Older NUCs, Intel Atom/Celeron processors, some virtualized environments (Proxmox, VirtualBox on older hosts)
+  - **Error message**: "CPU lacks AVX support" followed by Bun crash with segmentation fault
+  - **Solution**: Switched back to npm installation (`npm install -g @anthropic-ai/claude-code`) which uses Node.js and works on all CPUs
+  - **Trade-off**: npm installation is deprecated by Anthropic but provides broader hardware compatibility
+  - **Result**: Add-on now builds and runs on CPUs without AVX support
+
 ## 2.0.9
 
 ### 🐛 Bug Fix - First Connection Drop on Terminal Load
